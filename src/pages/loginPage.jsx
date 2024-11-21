@@ -30,7 +30,7 @@ const Login = () => {
           navigate('/dashboard-admin');
           break;
         case 'director_programa':
-          navigate('/director-dashboard');
+          navigate('/dashboard-director');
           break;
         case 'lider_proyecto':
           navigate('/leader-dashboard');

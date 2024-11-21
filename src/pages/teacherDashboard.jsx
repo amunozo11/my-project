@@ -1,43 +1,34 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LogOut, FolderOpen, ChevronRight } from 'lucide-react';
 import ProjectInfo from '../components/ProjectsInfo';
+import axios from 'axios';
 
 const TeacherDashboard = () => {
-    const [projects, setProjects] = useState([
-        {
-            id: 1,
-            title: 'Sistema de Gestión Académica',
-            description: 'Proyecto para mejorar la gestión académica de la facultad.',
-            startDate: '2024-09-01',
-            endDate: '2024-12-01',
-            deliveries: {
-                firstDelivery: { comment: '' },
-                secondDelivery: { comment: '' },
-                thirdDelivery: { comment: '' },
-            },
-            comments: [],
-            status: 'En Progreso',
-            leader: 'Juan Pérez'
-        },
-        {
-            id: 2,
-            title: 'Plataforma de Seguimiento de Tesis',
-            description: 'Herramienta para dar seguimiento a las tesis en desarrollo.',
-            startDate: '2024-10-01',
-            endDate: '2025-01-15',
-            deliveries: {
-                firstDelivery: { comment: '' },
-                secondDelivery: { comment: '' },
-                thirdDelivery: { comment: '' },
-            },
-            comments: [],
-            status: 'Planificación',
-            leader: 'María Rodriguez'
-        },
-    ]);
-
+    const [projects, setProjects] = useState([]); // Inicializar como un arreglo vacío
     const [activeProject, setActiveProject] = useState(null);
+    const [isLoading, setIsLoading] = useState(true); // Estado para manejar carga
+    const docenteId = JSON.parse(localStorage.getItem('user'));
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                setIsLoading(true); // Inicia la carga
+                const response = await axios.get(
+                    `http://localhost:5000/docente/mis-proyectos/${docenteId}`
+                );
+                console.log(docenteId);
+                setProjects(response.data || []); // Asegurarse de que sea un arreglo
+            } catch (error) {
+                console.error('Error fetching projects:', error);
+                setProjects([]);
+            } finally {
+                setIsLoading(false); // Finaliza la carga
+            }
+        };
+
+        fetchProjects();
+    }, [docenteId]);
 
     const handleCommentSubmit = (projectId, deliveryKey, commentValue) => {
         setProjects((prevProjects) =>
@@ -59,6 +50,14 @@ const TeacherDashboard = () => {
         alert('Sesión cerrada');
         window.location.href = '/';
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+                <p>Cargando proyectos...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen bg-gray-900 text-white">
@@ -116,14 +115,14 @@ const TeacherDashboard = () => {
                                         className="bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-blue-500/20 transition-all duration-300 cursor-pointer"
                                         onClick={() => setActiveProject(project)}
                                     >
-                                        <h3 className="font-bold text-xl mb-2 text-blue-400">{project.title}</h3>
-                                        <p className="text-gray-300 mb-4">{project.description}</p>
+                                        <h3 className="font-bold text-xl mb-2 text-blue-400">{project.titulo}</h3>
+                                        <p className="text-gray-300 mb-4">{project.descripcion}</p>
                                         <div className="space-y-4">
                                             <div className="flex items-center space-x-2">
-                                                <span className="text-gray-300">Inicio: {project.startDate}</span>
+                                                <span className="text-gray-300">Inicio: {project.fecha_inicio}</span>
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                <span className="text-gray-300">Fin: {project.endDate}</span>
+                                                <span className="text-gray-300">Fin: {project.fecha_fin}</span>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -144,16 +143,14 @@ const TeacherDashboard = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-                        onClick={() => setActiveProject(null)}
+                        onClick={() => setActiveProject()}
                     >
                         <motion.div
                             layoutId={`project-${activeProject.id}`}
                             className="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-4xl overflow-y-auto max-h-[90vh]"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <ProjectInfo 
-                                onCommentSubmit={handleCommentSubmit}
-                            />
+                            <ProjectInfo project={activeProject} onClick={handleCommentSubmit} />
                         </motion.div>
                     </motion.div>
                 )}

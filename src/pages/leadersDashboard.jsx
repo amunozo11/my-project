@@ -41,7 +41,8 @@ const LeaderDashboard = () => {
         navigate('/login');  // O la ruta que desees para redirigir al usuario después de cerrar sesión
     };
 
-
+    const [activeProject, setActiveProject] = useState(null);
+    
     const handleCreateProject = async (project) => {
         try {
             const response = await axios.post("http://localhost:5000/proyecto/crear", project);
@@ -216,15 +217,14 @@ const LeaderDashboard = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50"
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+                        onClick={() => handleCloseProjectDetails()} // Cerrar el proyecto al hacer clic fuera
                     >
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-3xl border border-green-500/30"
+                            layoutId={selectedProject ? `project-${selectedProject.id}` : undefined} // Asegúrate de que selectedProject no sea null
+                            className="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-4xl overflow-y-auto max-h-[90vh]"
+                            onClick={(e) => e.stopPropagation()} // Impide que el clic en el contenido cierre el modal
                         >
-                            {/* Aquí le pasas la información del proyecto seleccionado al componente ProjectInfo */}
                             <ProjectInfo project={selectedProject} onClick={handleCloseProjectDetails} />
                         </motion.div>
                     </motion.div>
