@@ -20,7 +20,9 @@ const Login = () => {
       });
 
       const { data } = response;
-      const { rol } = data;
+      const { rol, user } = data;
+
+      localStorage.setItem('user', JSON.stringify(response.data.uid));
 
       // Redirigir basado en el rol
       switch (rol) {

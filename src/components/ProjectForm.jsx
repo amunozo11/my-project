@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiBookOpen, FiCalendar, FiCheck, FiFileText, FiUpload, FiX } from 'react-icons/fi';
 import carreras from '../data/carreras';
 import facultades from '../data/facultades';
+import axios from 'axios';
 
 const ProjectForm = ({ onCreate, onClose }) => {
     const [title, setTitle] = useState('');
@@ -12,43 +13,100 @@ const ProjectForm = ({ onCreate, onClose }) => {
     const [faculty, setFaculty] = useState('');
     const [career, setCareer] = useState('');
     const [file, setFile] = useState(null);
-    const [collaborators, setCollaborators] = useState('');
-    const [teachers, setTeachers] = useState('');
+    const [collaborators, setCollaborators] = useState([]);
+    const [users, setUsers] = useState([]);
+    // Estados para docentes
+    const [searchTextTeacher, setSearchTextTeacher] = useState('');
+    const [filteredUsersTeacher, setFilteredUsersTeacher] = useState([]);
+    const [selectedTeacher, setSelectedTeacher] = useState(null);
 
-    // Validación del correo electrónico
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    // Estados para colaboradores
+    const [searchTextCollaborator, setSearchTextCollaborator] = useState('');
+    const [filteredUsersCollaborator, setFilteredUsersCollaborator] = useState([]);
+    const [selectedCollaborator, setSelectedCollaborator] = useState(null);
+
+    // Obtener la lista de usuarios
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/auth/admin/usuarios');
+                setUsers(response.data);
+            } catch (error) {
+                console.error('Error al obtener usuarios:', error);
+            }
+        };
+
+        fetchUsers();
+    }, []);
+
+    // Búsqueda de docentes
+    const handleSearchTeacher = (text) => {
+        setSearchTextTeacher(text);
+        const filtered = users.filter(
+            (user) =>
+                user.email.toLowerCase().includes(text.toLowerCase()) &&
+                user.rol === 'docente_guia' &&
+                user.aprobado
+        );
+        setFilteredUsersTeacher(filtered);
+    };
+
+    // Búsqueda de colaboradores
+    const handleSearchCollaborator = (text) => {
+        setSearchTextCollaborator(text);
+        const filtered = users.filter(
+            (user) =>
+                user.email.toLowerCase().includes(text.toLowerCase()) &&
+                user.rol === 'colaborador' &&
+                user.aprobado
+        );
+        setFilteredUsersCollaborator(filtered);
+    };
+
+    // Seleccionar docente
+    const handleSelectTeacher = (user) => {
+        setSelectedTeacher(user);
+        setSearchTextTeacher(user.email);
+        setFilteredUsersTeacher([]);
+    };
+
+    // Seleccionar colaborador
+    const handleSelectCollaborator = (user) => {
+        setSelectedCollaborator(user);
+        setSearchTextCollaborator(user.email);
+        setFilteredUsersCollaborator([]);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // Validar que todos los campos obligatorios estén llenos
-        if (
-            !title ||
-            !description ||
-            !startDate ||
-            !endDate ||
-            !faculty ||
-            !career ||
-            !file ||
-            (teachers && !emailRegex.test(teachers)) ||
-            (collaborators && collaborators && !emailRegex.test(collaborators))
-        ) {
-            alert('Por favor, complete todos los campos obligatorios y asegúrese de que los correos electrónicos sean válidos.');
+        if (!title || !description || !startDate || !endDate || !faculty || !career || !selectedTeacher) {
+            alert('Por favor, complete todos los campos obligatorios.');
             return;
         }
 
         const newProject = {
+            lider_id: JSON.parse(localStorage.getItem('user')),
             id: Date.now(),
-            title,
-            description,
-            startDate,
-            endDate,
-            faculty,
-            career,
-            file,
-            collaborators,
-            teachers,
+            titulo: title,
+            descripcion: description,
+            fecha_inicio: startDate,
+            fecha_fin: endDate,
+            facultad: faculty,
+            carrera: career,
+            archivo: file,
+            colaboradores_id: selectedCollaborator?.uid,
+            docente_id: selectedTeacher.uid,
+            estado: 'activo',
+            fases: {
+                desarrollo: { completada: false, entregas: [] },
+                evaluacion: { completada: false, entregas: [] },
+                planificacion: { completada: false, entregas: [] },
+            },
+            fecha_creacion: new Date().toISOString(),
+            tareas: [],
         };
+
         onCreate(newProject);
         onClose();
     };
@@ -56,6 +114,7 @@ const ProjectForm = ({ onCreate, onClose }) => {
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
     };
+
 
     return (
         <motion.div
@@ -200,31 +259,57 @@ const ProjectForm = ({ onCreate, onClose }) => {
                                 </select>
                             </label>
                         )}
-                        <label className="block">
-                            <span className="text-green-400 font-semibold flex items-center">
-                                Colaboradores (Correo)
-                            </span>
-                            <input
-                                type="email"
-                                className="mt-1 block w-full rounded-md bg-gray-800 border-gray-700 text-white shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 transition-colors"
-                                value={collaborators}
-                                onChange={(e) => setCollaborators(e.target.value)}
-                                placeholder="Correo del colaborador (opcional)"
-                            />
-                        </label>
-                        <label className="block">
+                        <label className="block relative">
                             <span className="text-green-400 font-semibold flex items-center">
                                 Docentes (Correo)
                             </span>
                             <input
-                                type="email"
-                                className="mt-1 block w-full rounded-md bg-gray-800 border-gray-700 text-white shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 transition-colors"
-                                value={teachers}
-                                onChange={(e) => setTeachers(e.target.value)}
-                                required
-                                placeholder="Correo del docente"
+                                type="text"
+                                className="mt-1 block w-full rounded-md bg-gray-800 border-gray-700 text-white shadow-sm focus:border-green-500"
+                                value={searchTextTeacher}
+                                onChange={(e) => handleSearchTeacher(e.target.value)}
+                                placeholder="Buscar docente por correo"
                             />
+                            {filteredUsersTeacher.length > 0 && (
+                                <div className="absolute bg-gray-800 w-full z-10 rounded-md shadow-lg max-h-40 overflow-auto">
+                                    {filteredUsersTeacher.map((user) => (
+                                        <div
+                                            key={user.uid}
+                                            className="px-4 py-2 hover:bg-gray-700 cursor-pointer text-white"
+                                            onClick={() => handleSelectTeacher(user)}
+                                        >
+                                            {user.email}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </label>
+                        <label className="block relative">
+                            <span className="text-green-400 font-semibold flex items-center">
+                                Colaboradores (Correo)
+                            </span>
+                            <input
+                                type="text"
+                                className="mt-1 block w-full rounded-md bg-gray-800 border-gray-700 text-white shadow-sm focus:border-green-500"
+                                value={searchTextCollaborator}
+                                onChange={(e) => handleSearchCollaborator(e.target.value)}
+                                placeholder="Buscar colaborador por correo"
+                            />
+                            {filteredUsersCollaborator.length > 0 && (
+                                <div className="absolute bg-gray-800 w-full z-10 rounded-md shadow-lg max-h-40 overflow-auto">
+                                    {filteredUsersCollaborator.map((user) => (
+                                        <div
+                                            key={user.uid}
+                                            className="px-4 py-2 hover:bg-gray-700 cursor-pointer text-white"
+                                            onClick={() => handleSelectCollaborator(user)}
+                                        >
+                                            {user.email}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </label>
+
                     </motion.div>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -288,6 +373,6 @@ const ProjectForm = ({ onCreate, onClose }) => {
             </motion.form>
         </motion.div>
     );
-};
 
+}
 export default ProjectForm;
