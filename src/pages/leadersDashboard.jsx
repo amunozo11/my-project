@@ -45,7 +45,9 @@ const LeaderDashboard = () => {
     
     const handleCreateProject = async (project) => {
         try {
+            console.log(project);
             const response = await axios.post("http://localhost:5000/proyecto/crear", project);
+            console.log(response	);
             setProjects((prevProjects) => Array.isArray(prevProjects) ? [...prevProjects, { ...project, id: response.data.id }] : [{ ...project, id: response.data.id }]);
             setIsModalOpen(false);
         } catch (error) {
@@ -212,8 +214,25 @@ const LeaderDashboard = () => {
 
             {/* Modal para detalles del proyecto */}
             <AnimatePresence>
-                {selectedProject && (
+            {selectedProject && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50"
+                >
                     <motion.div
+<<<<<<< HEAD
+                        initial={{ scale: 0.9, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        exit={{ scale: 0.9, y: 20 }}
+                        className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-3xl border border-green-500/30"
+                    >
+                        <ProjectInfo 
+                            project={selectedProject}
+                            onClick={handleCloseProjectDetails}
+                        />
+=======
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -227,8 +246,10 @@ const LeaderDashboard = () => {
                         >
                             <ProjectInfo project={selectedProject} onClick={handleCloseProjectDetails} />
                         </motion.div>
+>>>>>>> 7bd7ba2935cc7479efae9f4e3d032e225c1a4b3c
                     </motion.div>
-                )}
+                </motion.div>
+            )}
             </AnimatePresence>
 
         </div>
