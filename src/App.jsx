@@ -8,6 +8,7 @@ import ProfilePage from './pages/profilePage';
 import Register from './pages/registerPage';
 import TeacherDashboard from './pages/teacherDashboard';
 import CollaboratorDashboard from './pages/collaboratorDashboard';
+import DirectorDashboard from './pages/directorDashboard';
 
 export default function App() {
   return (
@@ -20,6 +21,8 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/dashboard-teacher" element={<TeacherDashboard />} />
         <Route path="/dashboard-colaborator" element={<CollaboratorDashboard />} />
+        <Route path="/dashboard-director" element={<DirectorDashboard />} />
+
       </Routes>
     </BrowserRouter>
   )

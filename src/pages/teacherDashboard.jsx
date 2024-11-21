@@ -1,15 +1,46 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
+<<<<<<< HEAD
 import { LogOut, FolderOpen, ChevronRight, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+=======
+import { LogOut, FolderOpen, ChevronRight } from 'lucide-react';
+>>>>>>> 7bd7ba2935cc7479efae9f4e3d032e225c1a4b3c
 import ProjectInfo from '../components/ProjectsInfo';
 import axios from 'axios';
 
 const TeacherDashboard = () => {
+<<<<<<< HEAD
     const [projects, setProjects] = useState([]);
     const [activeProject, setActiveProject] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
+=======
+    const [projects, setProjects] = useState([]); // Inicializar como un arreglo vacío
+    const [activeProject, setActiveProject] = useState(null);
+    const [isLoading, setIsLoading] = useState(true); // Estado para manejar carga
+    const docenteId = JSON.parse(localStorage.getItem('user'));
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                setIsLoading(true); // Inicia la carga
+                const response = await axios.get(
+                    `http://localhost:5000/docente/mis-proyectos/${docenteId}`
+                );
+                console.log(docenteId);
+                setProjects(response.data || []); // Asegurarse de que sea un arreglo
+            } catch (error) {
+                console.error('Error fetching projects:', error);
+                setProjects([]);
+            } finally {
+                setIsLoading(false); // Finaliza la carga
+            }
+        };
+
+        fetchProjects();
+    }, [docenteId]);
+>>>>>>> 7bd7ba2935cc7479efae9f4e3d032e225c1a4b3c
 
     const teacherId = JSON.parse(localStorage.getItem('user'));
 
@@ -71,6 +102,7 @@ const TeacherDashboard = () => {
         navigate('/');
     };
 
+<<<<<<< HEAD
     // Filtrar proyectos según el término de búsqueda
     const filteredProjects = projects.filter(project => {
         const searchLower = searchTerm.toLowerCase();
@@ -80,6 +112,15 @@ const TeacherDashboard = () => {
             project.lider?.toLowerCase().includes(searchLower)
         );
     });
+=======
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+                <p>Cargando proyectos...</p>
+            </div>
+        );
+    }
+>>>>>>> 7bd7ba2935cc7479efae9f4e3d032e225c1a4b3c
 
     return (
         <div className="flex h-screen bg-gray-900 text-white">
@@ -149,6 +190,7 @@ const TeacherDashboard = () => {
                                         className="bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-blue-500/20 transition-all duration-300 cursor-pointer group"
                                         onClick={() => setActiveProject(project)}
                                     >
+<<<<<<< HEAD
                                         <h3 className="font-bold text-xl mb-2 text-blue-400 group-hover:text-blue-300">
                                             {project.titulo}
                                         </h3>
@@ -175,6 +217,16 @@ const TeacherDashboard = () => {
                                                 }`}>
                                                     {project.estado || 'En progreso'}
                                                 </span>
+=======
+                                        <h3 className="font-bold text-xl mb-2 text-blue-400">{project.titulo}</h3>
+                                        <p className="text-gray-300 mb-4">{project.descripcion}</p>
+                                        <div className="space-y-4">
+                                            <div className="flex items-center space-x-2">
+                                                <span className="text-gray-300">Inicio: {project.fecha_inicio}</span>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <span className="text-gray-300">Fin: {project.fecha_fin}</span>
+>>>>>>> 7bd7ba2935cc7479efae9f4e3d032e225c1a4b3c
                                             </div>
                                         </div>
                                     </motion.div>
@@ -198,19 +250,23 @@ const TeacherDashboard = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-                        onClick={() => setActiveProject(null)}
+                        onClick={() => setActiveProject()}
                     >
                         <motion.div
                             layoutId={`project-${activeProject.id}`}
                             className="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-4xl overflow-y-auto max-h-[90vh]"
                             onClick={(e) => e.stopPropagation()}
                         >
+<<<<<<< HEAD
                             <ProjectInfo 
                                 project={activeProject}
                                 onClick={() => setActiveProject(null)}
                                 onCommentSubmit={handlePhaseComment}
                                 isTeacher={true}
                             />
+=======
+                            <ProjectInfo project={activeProject} onClick={handleCommentSubmit} />
+>>>>>>> 7bd7ba2935cc7479efae9f4e3d032e225c1a4b3c
                         </motion.div>
                     </motion.div>
                 )}
